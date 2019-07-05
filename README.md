@@ -1,1 +1,1 @@
-# prometheus-middleware
+# prometheus-middleware [![Go Report Card](https://goreportcard.com/badge/github.com/albertogviana/prometheus-middleware)](https://goreportcard.com/report/github.com/albertogviana/prometheus-middleware)
