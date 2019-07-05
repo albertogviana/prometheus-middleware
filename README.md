@@ -54,7 +54,6 @@ http_requests_total{code="200",method="get",path="/metrics"} 2
 middleware := NewPrometheusMiddleware(Opts{})
 
 n := negroni.New(middleware)
-n.Use(middleware)
 r := http.NewServeMux()
 r.Handle("/metrics", promhttp.Handler())
 r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

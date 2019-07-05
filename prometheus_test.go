@@ -18,7 +18,6 @@ func Test_InstrumentNegroni(t *testing.T) {
 	middleware := NewPrometheusMiddleware(Opts{})
 
 	n := negroni.New(middleware)
-	n.Use(middleware)
 	r := http.NewServeMux()
 	r.Handle("/metrics", promhttp.Handler())
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
