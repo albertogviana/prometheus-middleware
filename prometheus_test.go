@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/negroni"
 )
@@ -26,11 +27,14 @@ func Test_InstrumentNegroni(t *testing.T) {
 	})
 	n.UseHandler(r)
 
-	req1, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+	ts := httptest.NewServer(r)
+	defer ts.Close()
+
+	req1, err := http.NewRequest("GET", ts.URL+"/", nil)
 	if err != nil {
 		t.Error(err)
 	}
-	req2, err := http.NewRequest("GET", "http://localhost:3000/metrics", nil)
+	req2, err := http.NewRequest("GET", ts.URL+"/metrics", nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -38,6 +42,44 @@ func Test_InstrumentNegroni(t *testing.T) {
 	n.ServeHTTP(recorder, req1)
 	n.ServeHTTP(recorder, req2)
 	body := recorder.Body.String()
+	if !strings.Contains(body, requestName) {
+		t.Errorf("body does not contain request total entry '%s'", requestName)
+	}
+	if !strings.Contains(body, latencyName) {
+		t.Errorf("body does not contain request duration entry '%s'", requestName)
+	}
+}
+
+func Test_InstrumentGorillaMux(t *testing.T) {
+	recorder := httptest.NewRecorder()
+
+	middleware := NewPrometheusMiddleware(Opts{})
+
+	r := mux.NewRouter()
+	r.Handle("/metrics", promhttp.Handler())
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, "ok")
+	})
+
+	r.Use(middleware.InstrumentHandlerDuration)
+
+	ts := httptest.NewServer(r)
+	defer ts.Close()
+
+	req1, err := http.NewRequest("GET", ts.URL+"/", nil)
+	if err != nil {
+		t.Error(err)
+	}
+	req2, err := http.NewRequest("GET", ts.URL+"/metrics", nil)
+	if err != nil {
+		t.Error(err)
+	}
+
+	r.ServeHTTP(recorder, req1)
+	r.ServeHTTP(recorder, req2)
+	body := recorder.Body.String()
+	fmt.Printf("%s", body)
 	if !strings.Contains(body, requestName) {
 		t.Errorf("body does not contain request total entry '%s'", requestName)
 	}
