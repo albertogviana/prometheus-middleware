@@ -1,0 +1,12 @@
+language: go
+env:
+- GO111MODULE=on
+go:
+- 1.12.x
+dist: bionic
+git:
+  depth: 1
+notifications:
+  email: false
+script:
+- make verify

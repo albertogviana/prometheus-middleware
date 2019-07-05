@@ -8,7 +8,7 @@
 go get -u github.com/albertogviana/prometheus-middleware
 ```
 
-## What will you get?
+## What you will get
 
 You will get:
 
@@ -46,7 +46,7 @@ http_requests_total{code="200",method="get",path="/metrics"} 2
 ...
 ```
 
-## How to use it?
+## How to use it
 
 - Negroni
 
