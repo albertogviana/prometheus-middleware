@@ -1,4 +1,4 @@
-# prometheus-middleware [![Go Report Card](https://goreportcard.com/badge/github.com/albertogviana/prometheus-middleware)](https://goreportcard.com/report/github.com/albertogviana/prometheus-middleware)
+# prometheus-middleware [![Build Status](https://travis-ci.org/albertogviana/prometheus-middleware.svg?branch=master)](https://travis-ci.org/albertogviana/prometheus-middleware) [![Go Report Card](https://goreportcard.com/badge/github.com/albertogviana/prometheus-middleware)](https://goreportcard.com/report/github.com/albertogviana/prometheus-middleware)
 
 [Prometheus](http://prometheus.io) middleware that supports [negroni](https://github.com/urfave/negroni) and [gorilla/mux](https://github.com/gorilla/mux).
 
