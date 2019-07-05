@@ -79,7 +79,6 @@ func Test_InstrumentGorillaMux(t *testing.T) {
 	r.ServeHTTP(recorder, req1)
 	r.ServeHTTP(recorder, req2)
 	body := recorder.Body.String()
-	fmt.Printf("%s", body)
 	if !strings.Contains(body, requestName) {
 		t.Errorf("body does not contain request total entry '%s'", requestName)
 	}
