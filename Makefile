@@ -1,3 +1,6 @@
+# GOFLAGS=-mod=vendor will avoid to download the dependencies again
+export GOFLAGS=-mod=vendor
+
 .PHONY: dependency
 dependency:
 	@go mod download
