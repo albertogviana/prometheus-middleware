@@ -1,5 +1,3 @@
-export GO111MODULE=on
-
 .PHONY: dependency
 dependency:
 	@go mod download
