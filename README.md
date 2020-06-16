@@ -48,10 +48,17 @@ http_requests_total{code="200",method="get",path="/metrics"} 2
 
 ## How to use it
 
+Import
+```go
+import (
+  "github.com/albertogviana/prometheus-middleware"
+)
+```
+
 - Negroni
 
 ```go
-middleware := NewPrometheusMiddleware(Opts{})
+middleware := prometheusmiddleware.NewPrometheusMiddleware(prometheusmiddleware.Opts{})
 
 n := negroni.New(middleware)
 r := http.NewServeMux()
@@ -66,7 +73,7 @@ n.UseHandler(r)
 - Gorilla/Mux
 
 ```go
-middleware := NewPrometheusMiddleware(Opts{})
+middleware := prometheusmiddleware.NewPrometheusMiddleware(prometheusmiddleware.Opts{})
 
 r := mux.NewRouter()
 r.Handle("/metrics", promhttp.Handler())
