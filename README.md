@@ -1,6 +1,6 @@
 # prometheus-middleware [![Build Status](https://travis-ci.org/albertogviana/prometheus-middleware.svg?branch=master)](https://travis-ci.org/albertogviana/prometheus-middleware) [![Go Report Card](https://goreportcard.com/badge/github.com/albertogviana/prometheus-middleware)](https://goreportcard.com/report/github.com/albertogviana/prometheus-middleware)
 
-[Prometheus](http://prometheus.io) middleware that supports [negroni](https://github.com/urfave/negroni) and [gorilla/mux](https://github.com/gorilla/mux).
+[Prometheus](http://prometheus.io) middleware supports only [gorilla/mux](https://github.com/gorilla/mux).
 
 ## Installation
 
@@ -47,21 +47,6 @@ http_requests_total{code="200",method="get",path="/metrics"} 2
 ```
 
 ## How to use it
-
-- Negroni
-
-```go
-middleware := NewPrometheusMiddleware(Opts{})
-
-n := negroni.New(middleware)
-r := http.NewServeMux()
-r.Handle("/metrics", promhttp.Handler())
-r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-    w.WriteHeader(http.StatusOK)
-    fmt.Fprintln(w, "ok")
-})
-n.UseHandler(r)
-```
 
 - Gorilla/Mux
 

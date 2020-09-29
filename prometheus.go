@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -79,47 +80,24 @@ func (p *PrometheusMiddleware) InstrumentHandlerDuration(next http.Handler) http
 
 		next.ServeHTTP(rw, r) // call original
 
+		route := mux.CurrentRoute(r)
+		path, _ := route.GetPathTemplate()
+
 		code := sanitizeCode(delegate.status)
 		method := sanitizeMethod(r.Method)
 
 		go p.request.WithLabelValues(
 			code,
 			method,
-			r.URL.Path,
+			path,
 		).Inc()
 
 		go p.latency.WithLabelValues(
 			code,
 			method,
-			r.URL.Path,
+			path,
 		).Observe(float64(time.Since(begin)) / float64(time.Second))
 	})
-}
-
-// ServeHTTP dispatches is record how long the handler took to run, which path was called,
-// and the status code.
-// This method will be used with negroni middleware
-func (p *PrometheusMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	begin := time.Now()
-
-	delegate := &responseWriterDelegator{ResponseWriter: w}
-	rw := delegate
-
-	next(rw, r) // call original
-
-	code := sanitizeCode(delegate.status)
-	method := sanitizeMethod(r.Method)
-	go p.request.WithLabelValues(
-		code,
-		method,
-		r.URL.Path,
-	).Inc()
-
-	go p.latency.WithLabelValues(
-		code,
-		method,
-		r.URL.Path,
-	).Observe(float64(time.Since(begin)) / float64(time.Second))
 }
 
 type responseWriterDelegator struct {
