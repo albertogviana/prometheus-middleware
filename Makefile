@@ -1,13 +1,15 @@
 # GOFLAGS=-mod=vendor will avoid to download the dependencies again
 export GOFLAGS=-mod=vendor
 
+GOLANGCI_LINT = v1.24.0
+
 .PHONY: dependency
 dependency:
 	@go mod download
 	@go mod vendor
 
 .PHONY: verify
-verify: go-fmt go-vet go-lint test
+verify: go-fmt go-vet lint test
 
 .PHONY: go-vet
 go-vet:
@@ -17,16 +19,13 @@ go-vet:
 go-fmt:
 	@git ls-files '*.go' | grep -v 'vendor/' | xargs gofmt -s -w
 
-.PHONY: go-lint
-go-lint: install-golint
-	@golangci-lint run
+.PHONY: install-lint
+install-lint:
+	@test -f ./bin/golangci-lint || curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s ${GOLANGCI_LINT}
 
-.PHONY: install-golint
-install-golint:
-	GOLINT_CMD=$(shell command -v golangci-lint 2> /dev/null)
-ifndef GOLINT_CMD
-	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-endif
+.PHONY: lint
+lint: install-lint
+	@bin/golangci-lint run
 
 .PHONY: clean-vendor
 clean-vendor:
