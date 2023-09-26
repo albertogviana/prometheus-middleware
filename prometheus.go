@@ -35,8 +35,8 @@ type PromMiddleware struct {
 	latency *prometheus.HistogramVec
 }
 
-// NewHTTP creates a new PrometheusMiddleware instance
-func NewHTTP(opts Opts) (*PromMiddleware, error) {
+// New creates a new PrometheusMiddleware instance
+func New(opts Opts) (*PromMiddleware, error) {
 	var prometheusMiddleware PromMiddleware
 
 	labels := opts.Labels
