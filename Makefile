@@ -1,12 +1,8 @@
-# GOFLAGS=-mod=vendor will avoid to download the dependencies again
-export GOFLAGS=-mod=vendor
-
 GOLANGCI_LINT = v1.24.0
 
 .PHONY: dependency
 dependency:
 	@go mod download
-	@go mod vendor
 
 .PHONY: verify
 verify: go-fmt go-vet lint test

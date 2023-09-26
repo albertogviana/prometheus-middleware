@@ -1,6 +1,6 @@
-module github.com/albertogviana/prometheus-middleware
+module github.com/albertogg/prommiddleware
 
-go 1.14
+go 1.20
 
 require (
 	github.com/Djarvur/go-err113 v0.1.0 // indirect
