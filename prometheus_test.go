@@ -14,7 +14,7 @@ import (
 func Test_InstrumentGorillaMux(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
-	middleware, err := New(Opts{})
+	middleware, err := NewHTTP(Opts{})
 	if err != nil {
 		t.Errorf("error initializing middleware %s", err)
 	}

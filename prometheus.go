@@ -29,15 +29,15 @@ type Opts struct {
 	Labels []string
 }
 
-// PrometheusMiddleware specifies the metrics that is going to be generated
-type PrometheusMiddleware struct {
+// PromMiddleware specifies the metrics that is going to be generated
+type PromMiddleware struct {
 	request *prometheus.CounterVec
 	latency *prometheus.HistogramVec
 }
 
-// New creates a new PrometheusMiddleware instance
-func New(opts Opts) (*PrometheusMiddleware, error) {
-	var prometheusMiddleware PrometheusMiddleware
+// NewHTTP creates a new PrometheusMiddleware instance
+func NewHTTP(opts Opts) (*PromMiddleware, error) {
+	var prometheusMiddleware PromMiddleware
 
 	labels := opts.Labels
 	if len(labels) == 0 {
@@ -79,7 +79,7 @@ func New(opts Opts) (*PrometheusMiddleware, error) {
 // InstrumentHandlerDuration is a middleware that wraps the http.Handler and it record
 // how long the handler took to run, which path was called, and the status code.
 // This method is going to be used with gorilla/mux.
-func (p *PrometheusMiddleware) InstrumentHandlerDuration(next http.Handler) http.Handler {
+func (p *PromMiddleware) InstrumentHandlerDuration(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		begin := time.Now()
 
