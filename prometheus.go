@@ -1,7 +1,7 @@
 package prometheusmiddleware
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	dflBuckets = []float64{0.3, 1.0, 2.5, 5.0}
+	defaultBuckets = []float64{0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5}
+	defaultLabels  = []string{"status", "method", "path"}
 )
 
 const (
@@ -24,6 +25,8 @@ const (
 type Opts struct {
 	// Buckets specifies an custom buckets to be used in request histograpm.
 	Buckets []float64
+	// Labels specifies the label names that will be used
+	Labels []string
 }
 
 // PrometheusMiddleware specifies the metrics that is going to be generated
@@ -32,25 +35,30 @@ type PrometheusMiddleware struct {
 	latency *prometheus.HistogramVec
 }
 
-// NewPrometheusMiddleware creates a new PrometheusMiddleware instance
-func NewPrometheusMiddleware(opts Opts) *PrometheusMiddleware {
+// New creates a new PrometheusMiddleware instance
+func New(opts Opts) (*PrometheusMiddleware, error) {
 	var prometheusMiddleware PrometheusMiddleware
+
+	labels := opts.Labels
+	if len(labels) == 0 {
+		labels = defaultLabels
+	}
 
 	prometheusMiddleware.request = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: requestName,
 			Help: "How many HTTP requests processed, partitioned by status code, method and HTTP path.",
 		},
-		[]string{"code", "method", "path"},
+		labels,
 	)
 
 	if err := prometheus.Register(prometheusMiddleware.request); err != nil {
-		log.Println("prometheusMiddleware.request was not registered:", err)
+		return nil, fmt.Errorf("could not register request metric %w", err)
 	}
 
 	buckets := opts.Buckets
 	if len(buckets) == 0 {
-		buckets = dflBuckets
+		buckets = defaultBuckets
 	}
 
 	prometheusMiddleware.latency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -58,14 +66,14 @@ func NewPrometheusMiddleware(opts Opts) *PrometheusMiddleware {
 		Help:    "How long it took to process the request, partitioned by status code, method and HTTP path.",
 		Buckets: buckets,
 	},
-		[]string{"code", "method", "path"},
+		labels,
 	)
 
 	if err := prometheus.Register(prometheusMiddleware.latency); err != nil {
-		log.Println("prometheusMiddleware.latency was not registered:", err)
+		return nil, fmt.Errorf("could not register latency metric %w", err)
 	}
 
-	return &prometheusMiddleware
+	return &prometheusMiddleware, nil
 }
 
 // InstrumentHandlerDuration is a middleware that wraps the http.Handler and it record

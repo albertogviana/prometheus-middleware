@@ -14,7 +14,10 @@ import (
 func Test_InstrumentGorillaMux(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
-	middleware := NewPrometheusMiddleware(Opts{})
+	middleware, err := New(Opts{})
+	if err != nil {
+		t.Errorf("error initializing middleware %s", err)
+	}
 
 	r := mux.NewRouter()
 	r.Handle("/metrics", promhttp.Handler())
