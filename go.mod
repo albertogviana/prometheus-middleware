@@ -3,7 +3,7 @@ module github.com/albertogg/prommiddleware
 go 1.20
 
 require (
-	github.com/gorilla/mux v1.7.4
+	github.com/gorilla/mux v1.8.1-0.20230731014428-546dd0cc9f3e
 	github.com/prometheus/client_golang v1.5.1
 )
 
