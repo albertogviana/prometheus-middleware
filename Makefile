@@ -27,12 +27,8 @@ lint: install-lint
 clean-vendor:
 	@find ./vendor -type d | xargs rm -rf
 
-.PHONY: clean-test-cache
-clean-test-cache:
-	@go clean -testcache ./...
-
 .PHONY: test
-test: clean-test-cache
+test:
 	@go test -v ./... -cover -coverprofile=coverage.out -race -run ./...
 
 .PHONY: code-coverage
