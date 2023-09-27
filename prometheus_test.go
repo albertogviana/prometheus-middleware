@@ -8,19 +8,21 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 func Test_InstrumentGorillaMux(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
-	middleware, err := New(Opts{})
+	reg := prometheus.NewRegistry()
+
+	middleware, err := New(Opts{Registry: reg})
 	if err != nil {
 		t.Errorf("error initializing middleware %s", err)
 	}
 
 	r := mux.NewRouter()
-	r.Handle("/metrics", promhttp.Handler())
+	r.Handle("/metrics", middleware.Handler())
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "ok")

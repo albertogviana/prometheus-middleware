@@ -1,6 +1,7 @@
 package prommiddleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -21,8 +23,13 @@ const (
 	latencyName = "http_request_duration_seconds"
 )
 
+// When the registry is not passed in the Opts
+var ErrMissingRegistry = errors.New("missing registry")
+
 // Opts specifies options how to create new PrometheusMiddleware.
 type Opts struct {
+	// A prometheus registry
+	Registry *prometheus.Registry
 	// Buckets specifies an custom buckets to be used in request histograpm.
 	Buckets []float64
 	// Labels specifies the label names that will be used
@@ -31,19 +38,34 @@ type Opts struct {
 
 // PromMiddleware specifies the metrics that is going to be generated
 type PromMiddleware struct {
-	request *prometheus.CounterVec
-	latency *prometheus.HistogramVec
+	registry *prometheus.Registry
+	request  *prometheus.CounterVec
+	latency  *prometheus.HistogramVec
 }
 
 // New creates a new PrometheusMiddleware instance
 func New(opts Opts) (*PromMiddleware, error) {
 	var prometheusMiddleware PromMiddleware
 
+	registry := opts.Registry
+	if registry == nil {
+		return nil, ErrMissingRegistry
+	}
+
 	labels := opts.Labels
 	if len(labels) == 0 {
 		labels = defaultLabels
 	}
 
+	buckets := opts.Buckets
+	if len(buckets) == 0 {
+		buckets = defaultBuckets
+	}
+
+	// Setup the registry
+	prometheusMiddleware.registry = registry
+
+	// Setup the request counter
 	prometheusMiddleware.request = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: requestName,
@@ -52,15 +74,11 @@ func New(opts Opts) (*PromMiddleware, error) {
 		labels,
 	)
 
-	if err := prometheus.Register(prometheusMiddleware.request); err != nil {
+	if err := registry.Register(prometheusMiddleware.request); err != nil {
 		return nil, fmt.Errorf("could not register request metric %w", err)
 	}
 
-	buckets := opts.Buckets
-	if len(buckets) == 0 {
-		buckets = defaultBuckets
-	}
-
+	// Setup the request latency histogram
 	prometheusMiddleware.latency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    latencyName,
 		Help:    "How long it took to process the request, partitioned by status code, method and HTTP path.",
@@ -69,11 +87,24 @@ func New(opts Opts) (*PromMiddleware, error) {
 		labels,
 	)
 
-	if err := prometheus.Register(prometheusMiddleware.latency); err != nil {
+	if err := registry.Register(prometheusMiddleware.latency); err != nil {
 		return nil, fmt.Errorf("could not register latency metric %w", err)
 	}
 
 	return &prometheusMiddleware, nil
+}
+
+// Handler will return the handler for the metrics based on the registry setup.
+func (p *PromMiddleware) Handler() http.Handler {
+	return promhttp.InstrumentMetricHandler(
+		p.registry,
+		promhttp.HandlerFor(
+			p.registry,
+			promhttp.HandlerOpts{
+				Registry: p.registry,
+			},
+		),
+	)
 }
 
 // InstrumentHandlerDuration is a middleware that wraps the http.Handler and it record
