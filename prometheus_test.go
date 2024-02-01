@@ -33,7 +33,7 @@ func Test_InstrumentGorillaMux(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	req1, err := http.NewRequest("GET", ts.URL+"/", nil)
+	req1, err := http.NewRequest("GET", ts.URL+"/?version=0.1", nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -51,4 +51,8 @@ func Test_InstrumentGorillaMux(t *testing.T) {
 	if !strings.Contains(body, latencyName) {
 		t.Errorf("body does not contain request duration entry '%s'", requestName)
 	}
+
+    if !strings.Contains(body, `http_request_duration_seconds_count{method="get",path="/",status="200",version="0.1"}`) {
+        t.Errorf("body does not contain expected version value '%s'", `http_request_duration_seconds_count{method="get",path="/",status="200",version="0.1"}`)
+    }
 }

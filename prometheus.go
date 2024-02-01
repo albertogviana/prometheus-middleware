@@ -15,7 +15,7 @@ import (
 
 var (
 	defaultBuckets = []float64{0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5}
-	defaultLabels  = []string{"status", "method", "path"}
+	defaultLabels  = []string{"status", "method", "path", "version" }
 )
 
 const (
@@ -125,16 +125,25 @@ func (p *PromMiddleware) InstrumentHandlerDuration(next http.Handler) http.Handl
 		code := sanitizeCode(delegate.status)
 		method := sanitizeMethod(r.Method)
 
+		params := r.URL.Query()
+
+		version, ok := params["version"]
+		if !ok || version[0] == "" {
+			version = []string{"0.0.0"}
+		}
+
 		go p.request.WithLabelValues(
 			code,
 			method,
 			path,
+			version[0],
 		).Inc()
 
 		go p.latency.WithLabelValues(
 			code,
 			method,
 			path,
+			version[0],
 		).Observe(float64(time.Since(begin)) / float64(time.Second))
 	})
 }
